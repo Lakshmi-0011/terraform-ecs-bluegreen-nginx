@@ -1,5 +1,14 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_ACCOUNT_ID: "891377353125"
+    AWS_DEFAULT_REGION: "ap-south-1"
+    IMAGE_REPO_NAME: "appimagerepo"
+    IMAGE_TAG: "build-$(echo $CODEBUILD_BUILD_NUMBER)"
+    # CONTAINER_NAME: "blue-green"
+    REPOSITORY_URL: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+
 phases:
   pre_build:
     commands:
