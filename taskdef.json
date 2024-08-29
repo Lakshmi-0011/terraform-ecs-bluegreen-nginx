@@ -2,7 +2,7 @@
   "containerDefinitions": [
     {
       "name": "app-task-container",
-      "image": "<IMAGE1_NAME>",
+      "image": "<IMAGE_URI>",
       "portMappings": [
         {
           "containerPort": 80,
