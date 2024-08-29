@@ -31,7 +31,10 @@ phases:
       # - sed -i 's@AWS_REGION@'$AWS_REGION'@g' taskdef.json
       # - echo update the roles in task definition...
       # - sed -i 's@TASK_EXECUTION_ARN@'$TASK_EXECUTION_ARN'@g' taskdef.json
+      - echo Writing image definitions file...
+      - printf '{"Version":"1.0","ImageURI":"%s"}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
 artifacts:
   files:
+    - imageDetail.json
     - "appspec.yaml"
     - "taskdef.json"
