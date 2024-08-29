@@ -2,7 +2,7 @@
   "containerDefinitions": [
     {
       "name": "app-task-container",
-      "image": "REPOSITORY_URI:IMAGE_TAG",
+      "image": "891377353125.dkr.ecr.ap-south-1.amazonaws.com/appimagerepo:build-6",
       "portMappings": [
         {
           "containerPort": 80,
