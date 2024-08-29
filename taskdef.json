@@ -23,8 +23,7 @@
       }
     }
   ],
-  "taskRoleArn": "arn:aws:iam::4634380474765:role/ecsTaskExecutionRole",
-  "executionRoleArn": "arn:aws:iam::4634380474765:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::891377353125:role/ecsTaskExecutionRole",
   "family": "app-task-def",
   "networkMode": "awsvpc",
   "requiresCompatibilities": [
