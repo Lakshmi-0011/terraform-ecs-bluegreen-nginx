@@ -93,6 +93,51 @@ resource "aws_codebuild_project" "bluegreenbuild" {
   }
 }
 
+# --------------second build project for DAST implementation------------
+resource "aws_codebuild_project" "bluegreendastbuild" {
+  name          = "bluegreen-DAST-project"
+  description   = "bluegreenDastBuild"
+  build_timeout = 5
+  service_role  = var.codebuild_role_arn
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
+    type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "CODEBUILD"
+    privileged_mode             = false
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = "bluegreen-log-group"
+      stream_name = "bluegreen-log-stream"
+    }
+  }
+
+  source {
+    type            = "CODECOMMIT"
+    location        = aws_codecommit_repository.apprepo.clone_url_http
+    git_clone_depth = 1
+    buildspec = "buildspec_deploy.yml"
+
+    git_submodules_config {
+      fetch_submodules = true
+    }
+  }
+
+  source_version = "master"
+
+
+  tags = {
+    Project = "BlueGreenDastBlog"
+  }
+}
+
 
 # --------------------------------code deploy--------------------------------
 
@@ -348,6 +393,25 @@ resource "aws_codepipeline" "ecs_blue_green" {
         AppSpecTemplatePath          = "appspec.yaml"
         Image1ArtifactName           = "BuildArtifact"
         Image1ContainerName          = "IMAGE_URI"
+      }
+    }
+  }
+
+    stage {
+    name = "Build"
+
+    action {
+      name             = "Build"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      version          = "1"
+      role_arn = var.code_pipeline_build_role
+      run_order = 4
+      input_artifacts  = ["sourceArtifact"]
+      output_artifacts = ["buildArtifact"]
+      configuration = {
+        ProjectName = aws_codebuild_project.bluegreendastbuild.name
       }
     }
   }
