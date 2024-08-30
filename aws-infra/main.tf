@@ -36,7 +36,8 @@ module "pipeline_module" {
   code_pipeline_build_role    = module.security_module.codepipeline_build_role_arn
   code_pipeline_deploy_role   = module.security_module.codepipeline_deploy_role_arn
   events_role_arn             = module.security_module.events_role_arn
-
+  sonar_token = var.sonar_token
+  sonar_url = var.sonar_url
 }
 
 module "networking_module" {

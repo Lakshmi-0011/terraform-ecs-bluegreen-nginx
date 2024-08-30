@@ -37,7 +37,7 @@ resource "aws_codebuild_project" "bluegreenbuild" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image                       = "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
     privileged_mode             = true
@@ -50,6 +50,16 @@ resource "aws_codebuild_project" "bluegreenbuild" {
     environment_variable {
       name  = "TASK_EXECUTION_ARN"
       value = var.task_execution_role_arn
+    }
+
+    environment_variable {
+      name  = "sonar_url"
+      value = var.sonar_url
+    }
+
+    environment_variable {
+      name  = "sonar_token"
+      value = var.sonar_token
     }
   }
 
@@ -308,7 +318,7 @@ resource "aws_codepipeline" "ecs_blue_green" {
       provider         = "CodeBuild"
       version          = "1"
       role_arn = var.code_pipeline_build_role
-      run_order = 1
+      run_order = 2
       input_artifacts  = ["sourceArtifact"]
       output_artifacts = ["buildArtifact"]
       configuration = {
@@ -328,7 +338,7 @@ resource "aws_codepipeline" "ecs_blue_green" {
       version         = "1"
       input_artifacts = ["buildArtifact"]
       role_arn = var.code_pipeline_deploy_role
-      run_order = 1
+      run_order = 3
       configuration = {
         ApplicationName              = aws_codedeploy_app.bluegreenapp.name
         DeploymentGroupName          = aws_codedeploy_deployment_group.ecs_deployment_group.deployment_group_name

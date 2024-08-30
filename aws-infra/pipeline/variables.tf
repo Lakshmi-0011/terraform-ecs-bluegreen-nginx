@@ -72,3 +72,14 @@ variable "events_role_arn" {
   description = "The ARN of the IAM role used by CloudWatch Events."
   type        = string
 }
+
+variable "sonar_url" {
+  description = "The URL of the SonarQube server where the code analysis will be performed."
+  type        = string
+}
+
+variable "sonar_token" {
+  description = "The authentication token for accessing the SonarQube server."
+  type        = string
+  sensitive   = true  # Optional: Marks the variable as sensitive, hiding its value in output.
+}
