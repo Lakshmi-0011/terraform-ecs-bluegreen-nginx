@@ -1,0 +1,67 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # install sonar scanner
+      - echo Installing SonarScanner...
+      - export SONAR_SCANNER_VERSION=5.0.1.3006
+      - curl -o sonarscanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux.zip
+      - unzip sonarscanner.zip -d /opt
+      - export PATH=$PATH:/opt/sonar-scanner-$SONAR_SCANNER_VERSION-linux/bin
+      - sonar-scanner --version 
+      # install trivy
+      # - export TRIVY_VERSION=0.18.3
+      - wget https://github.com/aquasecurity/trivy/releases/download/v0.20.0/trivy_0.20.0_Linux-64bit.tar.gz
+      - tar zxvf trivy_0.20.0_Linux-64bit.tar.gz
+      - sudo mv trivy /usr/local/bin/
+      - trivy --version
+
+  pre_build:
+    commands:
+      # perform sonar scanning
+      - echo Preparing to run SonarScanner...
+      - export SONAR_SCANNER_HOME=/opt/sonar-scanner-$SONAR_SCANNER_VERSION-linux
+      - echo Start sonar scanning
+      - sonar-scanner -Dsonar.projectKey=ecs-bluegreen -Dsonar.sources=. -Dsonar.host.url=$sonar_url -Dsonar.token=$sonar_token -X
+      # ECR login
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - aws ecr get-login-password | docker login --username AWS --password-stdin $REPOSITORY_URI
+      # - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_NUMBER)
+      # - IMAGE_TAG=${COMMIT_HASH:=latest}
+
+  build:
+    commands:
+      - echo Docker build and tagging started on `date`
+      - docker build -t $REPOSITORY_URI:latest -t $REPOSITORY_URI:$IMAGE_TAG .
+      # - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+      - echo Docker build and tagging completed on `date`
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the docker images...
+      # - docker push $REPOSITORY_URI:$IMAGE_TAG 
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "Starting Trivy scan..."
+      - trivy image --no-progress --severity CRITICAL,HIGH $REPOSITORY_URI:$IMAGE_TAG > trivy.json
+      - echo "Trivy scan complete"
+      - echo Update the REPOSITORY_URI:IMAGE_TAG in task definition...
+      - echo Container image to be used $REPOSITORY_URI:$IMAGE_TAG
+      - sed -i 's@REPOSITORY_URI@'$REPOSITORY_URI'@g' taskdef.json
+      - sed -i 's@IMAGE_TAG@'$IMAGE_TAG'@g' taskdef.json
+      - echo update the REGION in task definition...
+      - sed -i 's@AWS_REGION@'$AWS_REGION'@g' taskdef.json
+      - echo update the roles in task definition...
+      - sed -i 's@TASK_EXECUTION_ARN@'$TASK_EXECUTION_ARN'@g' taskdef.json
+      # - echo Writing image definitions file...
+      # - printf '{"Version":"1.0","ImageURI":"%s"}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
+artifacts:
+  files:
+    # - imageDetail.json
+    - "appspec.yaml"
+    - "taskdef.json"
+    - "trivy.json"

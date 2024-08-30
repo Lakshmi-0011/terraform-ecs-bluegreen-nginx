@@ -2,7 +2,7 @@
   "containerDefinitions": [
     {
       "name": "app-task-container",
-      "image": "<IMAGE_URI>",
+      "image": "REPOSITORY_URI:IMAGE_TAG",
       "portMappings": [
         {
           "containerPort": 80,
@@ -17,13 +17,13 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/app-logs",
-          "awslogs-region": "ap-south-1",
+          "awslogs-region": "AWS_REGION",
           "awslogs-stream-prefix": "ecs"
         }
       }
     }
   ],
-  "executionRoleArn": "arn:aws:iam::891377353125:role/ecsTaskExecutionRole",
+  "executionRoleArn": "TASK_EXECUTION_ARN",
   "family": "app-task-def",
   "networkMode": "awsvpc",
   "requiresCompatibilities": [
